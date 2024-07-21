@@ -301,5 +301,65 @@ public class CartServiceImplUnitTest {
         assertNull(cart.getDiscount());
     }
 
+    @Test
+    public void should_return_discount_amount_when_total_cart_amount_greater_than_minimum_amount_when_discount_type_is_amount_based(){
+        Discount discount = new Discount();
+        discount.setDiscount(BigDecimal.TEN);
+        discount.setMinimumAmount(BigDecimal.valueOf(100));
+        discount.setName("discount");
+        discount.setDiscountType(DiscountType.AMOUNT_BASED);
+
+        Product product = new Product();
+        product.setPrice(BigDecimal.valueOf(20));
+
+        Cart cart = new Cart();
+
+        CartItem cartItem = new CartItem();
+        cartItem.setProduct(product);
+        cartItem.setCart(cart);
+        cartItem.setQuantity(6);
+
+        List<CartItem> cartItemList = new ArrayList<>();
+        cartItemList.add(cartItem);
+
+        when(discountRepository.findFirstByName(discount.getName())).thenReturn(discount);
+        when(cartItemRepository.findAllByCart(cart)).thenReturn(cartItemList);
+
+        BigDecimal result = cartService.applyDiscountToCartIfApplicableAndCalculateDiscountAmount(discount.getName(), cart);
+
+        assertThat(result).isEqualTo(BigDecimal.TEN);
+        assertNotNull(cart.getDiscount());
+    }
+
+    @Test
+    public void should_return_discount_amount_when_total_cart_amount_greater_than_minimum_amount_when_discount_type_is_rate_based(){
+        Discount discount = new Discount();
+        discount.setDiscount(BigDecimal.TEN);
+        discount.setMinimumAmount(BigDecimal.valueOf(100));
+        discount.setName("discount");
+        discount.setDiscountType(DiscountType.RATE_BASED);
+
+        Product product = new Product();
+        product.setPrice(BigDecimal.valueOf(20));
+
+        Cart cart = new Cart();
+
+        CartItem cartItem = new CartItem();
+        cartItem.setProduct(product);
+        cartItem.setCart(cart);
+        cartItem.setQuantity(6);
+
+        List<CartItem> cartItemList = new ArrayList<>();
+        cartItemList.add(cartItem);
+
+        when(discountRepository.findFirstByName(discount.getName())).thenReturn(discount);
+        when(cartItemRepository.findAllByCart(cart)).thenReturn(cartItemList);
+
+        BigDecimal result = cartService.applyDiscountToCartIfApplicableAndCalculateDiscountAmount(discount.getName(), cart);
+
+        assertThat(result).isEqualTo(BigDecimal.valueOf(12));
+        assertNotNull(cart.getDiscount());
+    }
+
 
 }

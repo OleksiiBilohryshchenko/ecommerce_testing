@@ -1,12 +1,10 @@
 package com.example.lab08rest.service.unit;
 
-import com.example.lab08rest.entity.Cart;
-import com.example.lab08rest.entity.CartItem;
-import com.example.lab08rest.entity.Customer;
-import com.example.lab08rest.entity.Product;
+import com.example.lab08rest.entity.*;
 import com.example.lab08rest.enums.CartState;
 import com.example.lab08rest.repository.CartItemRepository;
 import com.example.lab08rest.repository.CartRepository;
+import com.example.lab08rest.repository.DiscountRepository;
 import com.example.lab08rest.repository.ProductRepository;
 import com.example.lab08rest.service.impl.CartServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -16,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.swing.text.html.Option;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +34,9 @@ public class CartServiceImplUnitTest {
 
     @Mock
     private CartItemRepository cartItemRepository;
+
+    @Mock
+    private DiscountRepository discountRepository;
 
     @InjectMocks
     private CartServiceImpl cartService;
@@ -129,6 +131,77 @@ public class CartServiceImplUnitTest {
                 cartService.addToCart(customer,1L,8));
         assertThat(throwable).isInstanceOf(RuntimeException.class);
     }
+
+    @Test
+    public void should_add_item_to_cart_when_cart_doesnt_exist() {
+        Product product = new Product();
+        product.setId(1L);
+        product.setQuantity(10);
+        product.setName("Orange");
+        product.setPrice(BigDecimal.TEN);
+        product.setRemainingQuantity(10);
+
+        Customer customer = new Customer();
+        customer.setId(1L);
+
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(cartRepository.findAllByCustomerIdAndCartState(customer.getId(), CartState.CREATED)).thenReturn(null);
+        when(cartItemRepository.findAllByCartAndProduct(any(), any())).thenReturn(null);
+
+        boolean result = cartService.addToCart(customer, product.getId(), 3);
+        assertTrue(result);
+    }
+
+    @Test
+    public void should_add_to_cart_when_cart_exists_and_cart_item_not_exist(){
+        Product product = new Product();
+        product.setId(1L);
+        product.setRemainingQuantity(10);
+
+        Cart cart = new Cart();
+        cart.setCartState(CartState.CREATED);
+
+
+        List<Cart> cartList = new ArrayList<>();
+        cartList.add(cart);
+
+        Customer customer = new Customer();
+        customer.setId(1L);
+
+        when(productRepository.findById(product.getId())).thenReturn(Optional.of(product));
+        when(cartRepository.findAllByCustomerIdAndCartState
+                (customer.getId(), CartState.CREATED)).thenReturn(cartList);
+        when(cartItemRepository.findAllByCartAndProduct(cart, product)).thenReturn(null);
+
+
+        boolean result = cartService.addToCart(customer, product.getId(), 8);
+        assertTrue(result);
+    }
+
+    @Test
+    public void should_throw_exception_when_discount_not_exists(){
+        when(discountRepository.findFirstByName("discount")).thenReturn(null);
+
+        Throwable throwable = catchThrowable(() ->
+                cartService.applyDiscountToCartIfApplicableAndCalculateDiscountAmount("discount", new Cart()));
+        assertThat(throwable).isInstanceOf(RuntimeException.class);
+        assertThat(throwable).hasMessage("Discount couldn't find ");
+    }
+
+    @Test
+    public void should_throw_exception_when_discount_amount_is_null(){
+
+        Discount discount = new Discount();
+
+        when(discountRepository.findFirstByName("discount")).thenReturn(discount);
+
+        Throwable throwable = catchThrowable(() ->
+                cartService.applyDiscountToCartIfApplicableAndCalculateDiscountAmount("discount", new Cart()));
+        assertThat(throwable).isInstanceOf(RuntimeException.class);
+        assertThat(throwable).hasMessage("Discount amount can not be null ");
+    }
+
+
 
 
 }

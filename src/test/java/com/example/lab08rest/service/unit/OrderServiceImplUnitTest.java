@@ -1,6 +1,9 @@
 package com.example.lab08rest.service.unit;
 
+import com.example.lab08rest.entity.Customer;
+import com.example.lab08rest.enums.CartState;
 import com.example.lab08rest.enums.PaymentMethod;
+import com.example.lab08rest.repository.CartRepository;
 import com.example.lab08rest.repository.CustomerRepository;
 import com.example.lab08rest.service.impl.OrderServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -22,6 +25,9 @@ public class OrderServiceImplUnitTest {
     @Mock
     CustomerRepository customerRepository;
 
+    @Mock
+    CartRepository cartRepository;
+
     @InjectMocks
     private OrderServiceImpl orderService;
 
@@ -32,6 +38,20 @@ public class OrderServiceImplUnitTest {
                 orderService.placeOrder(PaymentMethod.TRANSFER,134L,1L));
         assertThat(throwable).isInstanceOf(RuntimeException.class);
     }
+
+    @Test
+    public void should_throw_exception_when_cart_list_of_the_customer_is_null(){
+        Customer customer = new Customer();
+        customer.setId(1L);
+
+        when(customerRepository.findById(customer.getId())).thenReturn(Optional.of(customer));
+        when(cartRepository.findAllByCustomerIdAndCartState(customer.getId(), CartState.CREATED))
+                .thenReturn(null);
+        Throwable throwable = catchThrowable(() ->
+                orderService.placeOrder(PaymentMethod.TRANSFER,134L,customer.getId()));
+        assertThat(throwable).isInstanceOf(RuntimeException.class);
+    }
+
 
 
 }

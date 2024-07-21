@@ -102,5 +102,33 @@ public class CartServiceImplUnitTest {
         assertThat(cartItem.getQuantity()).isEqualTo(10);
     }
 
+    @Test
+    public void should_throw_an_exception_when_cart_size_is_two(){
+
+        Product product = new Product();
+        product.setId(1L);
+        product.setRemainingQuantity(10);
+
+        Cart cart = new Cart();
+        cart.setCartState(CartState.CREATED);
+
+        Cart cart2 = new Cart();
+        cart.setCartState(CartState.CREATED);
+
+        List<Cart> cartList = new ArrayList<>();
+        cartList.add(cart);
+        cartList.add(cart2);
+
+        Customer customer = new Customer();
+        customer.setId(1L);
+
+        when(productRepository.findById(product.getId())).thenReturn(Optional.of(product));
+        when(cartRepository.findAllByCustomerIdAndCartState
+                (customer.getId(), CartState.CREATED)).thenReturn(cartList);
+        Throwable throwable = catchThrowable(() ->
+                cartService.addToCart(customer,1L,8));
+        assertThat(throwable).isInstanceOf(RuntimeException.class);
+    }
+
 
 }

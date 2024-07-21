@@ -151,7 +151,7 @@ public class OrderServiceImpl implements OrderService {
         // if there is no cart in DB, we need to throw exception
         // Once customer place order cart status will be SOLD and after that if customer would like to buy something
         // again a new cart will be created. That's why a customer can have multiple carts but only one cart with CREATE status
-        // can be exist run time. All other carts should be SOLD status
+        // can be existed during a run time. All other carts should be SOLD status
         if (cartList == null || cartList.size() == 0) {
             throw new RuntimeException("Cart couldn't find or cart is empty");
         }
@@ -172,7 +172,7 @@ public class OrderServiceImpl implements OrderService {
             return BigDecimal.ZERO;
         }
 
-        // Discounts can be applied to cart but it is not mandatory. At first discount amount will be ZERO
+        // Discounts can be applied to cart, but it is not mandatory. At first discount amount will be ZERO
         // If a discount can be applicable to cart, we will have discounted amount depends on discount
         // Before placing order discount must have been applied to cart.
         BigDecimal lastDiscountAmount = BigDecimal.ZERO;
@@ -180,7 +180,7 @@ public class OrderServiceImpl implements OrderService {
             lastDiscountAmount = cartService.applyDiscountToCartIfApplicableAndCalculateDiscountAmount(cart.getDiscount().getName(), cart);
         }
 
-        // we are calculating te cart total amount to have gross amount
+        // we are calculating the cart total amount to have a gross amount
         BigDecimal totalCartAmount = calculateTotalCartAmount(cartItemList);
 
         Payment payment = new Payment();
@@ -193,7 +193,7 @@ public class OrderServiceImpl implements OrderService {
         // total price $600
         // after discount = $50 -> $550
 
-        // we are calculating te cart total amount after discount
+        // we are calculating the cart total amount after discount
         order.setPaidPrice(totalCartAmount.subtract(lastDiscountAmount));
 
 
@@ -205,7 +205,7 @@ public class OrderServiceImpl implements OrderService {
 
         // initialising payment entity
         // in the recordings, initialising payment was not inserted database directly.
-        // But it caused other problems so i decided to insert it into DB first
+        // But it caused other problems, so I decided to insert it into DB first
         // After that we are setting payment value to Order Entity.
         payment.setPaidPrice(order.getPaidPrice());
         payment.setPaymentMethod(paymentMethod);
@@ -229,7 +229,7 @@ public class OrderServiceImpl implements OrderService {
 
     private BigDecimal calculateTotalCartAmount(List<CartItem> cartItemList) {
         // this stream basically calculates the cart total amount depends on how many product is added to cart and theirs quantity
-        // there is also another same method that calculate cart total amount in CartService we should use it for readability
+        // there is also another same method that calculate cart total amount in CartService we should use it for readability,
         // but I paste it here to be able to show you more test cases.
         Function<CartItem, BigDecimal> totalMapper = cartItem -> cartItem.getProduct().getPrice()
                 .multiply(BigDecimal.valueOf(cartItem.getQuantity()));

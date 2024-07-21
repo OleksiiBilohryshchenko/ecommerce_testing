@@ -61,14 +61,18 @@ public class CartServiceImpl implements CartService {
             throw new RuntimeException("Not enough stock");
         }
 
-        // we retrieve customer's cart, is there no cart that belongs to the customer. No rush we can create one!
+        // we retrieve customer's cart, if there is no cart that belongs to the customer. No rush we can create one!
         List<Cart> cartList = cartRepository.findAllByCustomerIdAndCartState(customer.getId(), CartState.CREATED);
-        // we are checking, is there any cart, duplication, size
+        // we are checking, if there is any cart, duplication, size
         // if there is any problem we throw exception in checkCartCount method
         Cart cart = checkCartCount(cartList, customer);
 
         // we retrieve cart item related with the product to decide product is already there or will be added new
         CartItem cartItem = cartItemRepository.findAllByCartAndProduct(cart, product);
+
+        // cart -> 5 milk
+        // cart -> 3 milk
+        // cart -> 8 milk
 
         // if product is already added to cart before, we will update the quantity, adding to existing quantity value
         if (cartItem != null) {
@@ -83,7 +87,7 @@ public class CartServiceImpl implements CartService {
             cartItemRepository.save(cartItem);
         }
 
-        // If everything goes well, we will return true. Otherwise we are throwing some exceptions.
+        // If everything goes well, we will return true. Otherwise, we are throwing some exceptions.
         return true;
     }
 
@@ -99,17 +103,17 @@ public class CartServiceImpl implements CartService {
             throw new RuntimeException("Discount couldn't find ");
         }
 
-        // discount amount also needs to had a value, otherwise we will throw exception
+        // discount amount also needs to have a value, otherwise we will throw exception
         if (discount.getDiscount() == null) {
             throw new RuntimeException("Discount amount can not be null ");
         }
 
-        // discount minimum amount also needs to had a value, otherwise we will throw exception
+        // discount minimum amount also needs to have a value, otherwise we will throw exception
         if (discount.getMinimumAmount() == null) {
             throw new RuntimeException("Discount minimum amount can not be null ");
         }
 
-        // discount minimum amount and discount amount also needs to had a value bigger than ZERO, otherwise we will throw exception
+        // discount minimum amount and discount amount also needs to have a value bigger than ZERO, otherwise we will throw exception
         if (discount.getMinimumAmount().compareTo(BigDecimal.ZERO) <= 0 || discount.getDiscount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("Discount amount needs be bigger than zero ");
         }
@@ -171,7 +175,7 @@ public class CartServiceImpl implements CartService {
             cartList.add(cart);
         }
         // if customer has multiple cart as CREATED status, means that there is a problem with our values in DB
-        // we shouldn't allow to customer put any item into cart, we have to fix duplication first.
+        // we shouldn't allow a customer put any item into cart, we have to fix duplication first.
         if (cartList.size() > 1) {
             throw new RuntimeException("Duplicate cart count. Check values on database");
         }

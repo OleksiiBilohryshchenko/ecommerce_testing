@@ -1,9 +1,6 @@
 package com.example.lab08rest.service.unit;
 
-import com.example.lab08rest.entity.Cart;
-import com.example.lab08rest.entity.CartItem;
-import com.example.lab08rest.entity.Customer;
-import com.example.lab08rest.entity.Product;
+import com.example.lab08rest.entity.*;
 import com.example.lab08rest.enums.CartState;
 import com.example.lab08rest.enums.PaymentMethod;
 import com.example.lab08rest.repository.*;
@@ -113,5 +110,45 @@ public class OrderServiceImplUnitTest {
         assertThat(result).isEqualTo(BigDecimal.valueOf(20));
         assertThat(product.getRemainingQuantity()).isEqualTo(56);
     }
+
+    @Test
+    public void should_place_order_with_discount(){
+        Product product = new Product();
+        product.setPrice(BigDecimal.valueOf(5));
+        product.setRemainingQuantity(60);
+
+        Customer customer = new Customer();
+        customer.setId(1L);
+
+        Discount discount = new Discount();
+        discount.setName("discount");
+
+        Cart cart = new Cart();
+        cart.setId(1L);
+        cart.setDiscount(discount);
+
+        List<Cart> cartList = new ArrayList<>();
+        cartList.add(cart);
+
+        CartItem cartItem = new CartItem();
+        cartItem.setQuantity(4);
+        cartItem.setProduct(product);
+        cartItem.setCart(cart);
+
+        List<CartItem> cartItemList = new ArrayList<>();
+        cartItemList.add(cartItem);
+
+        when(customerRepository.findById(customer.getId())).thenReturn(Optional.of(customer));
+        when(cartRepository.findAllByCustomerIdAndCartState(customer.getId(), CartState.CREATED)).thenReturn(cartList);
+        when(cartItemRepository.findAllByCart(cart)).thenReturn(cartItemList);
+        when(cartService.applyDiscountToCartIfApplicableAndCalculateDiscountAmount
+                (cart.getDiscount().getName(),cart)).thenReturn(BigDecimal.TEN);
+
+        BigDecimal result = orderService.placeOrder(PaymentMethod.TRANSFER, cart.getId(),customer.getId());
+        assertThat(result).isEqualTo(BigDecimal.valueOf(10));
+        assertThat(product.getRemainingQuantity()).isEqualTo(56);
+    }
+
+
 
 }

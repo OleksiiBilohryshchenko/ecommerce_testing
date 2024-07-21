@@ -149,6 +149,45 @@ public class OrderServiceImplUnitTest {
         assertThat(product.getRemainingQuantity()).isEqualTo(56);
     }
 
+    @Test
+    public void should_place_order_with_discount_and_extra_credit_cart_discount(){
+        Product product = new Product();
+        product.setPrice(BigDecimal.valueOf(5));
+        product.setRemainingQuantity(60);
+
+        Customer customer = new Customer();
+        customer.setId(1L);
+
+        Discount discount = new Discount();
+        discount.setName("discount");
+
+        Cart cart = new Cart();
+        cart.setId(1L);
+        cart.setDiscount(discount);
+
+        List<Cart> cartList = new ArrayList<>();
+        cartList.add(cart);
+
+        CartItem cartItem = new CartItem();
+        cartItem.setQuantity(10);
+        cartItem.setProduct(product);
+        cartItem.setCart(cart);
+
+        List<CartItem> cartItemList = new ArrayList<>();
+        cartItemList.add(cartItem);
+
+        when(customerRepository.findById(customer.getId())).thenReturn(Optional.of(customer));
+        when(cartRepository.findAllByCustomerIdAndCartState(customer.getId(), CartState.CREATED)).thenReturn(cartList);
+        when(cartItemRepository.findAllByCart(cart)).thenReturn(cartItemList);
+        when(cartService.applyDiscountToCartIfApplicableAndCalculateDiscountAmount
+                (cart.getDiscount().getName(),cart)).thenReturn(BigDecimal.valueOf(15));
+
+        BigDecimal result = orderService.placeOrder(PaymentMethod.CREDIT_CARD, cart.getId(),customer.getId());
+        assertThat(result).isEqualTo(BigDecimal.valueOf(25));
+        assertThat(product.getRemainingQuantity()).isEqualTo(50);
+    }
+
+
 
 
 }

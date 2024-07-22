@@ -1,5 +1,6 @@
 package com.example.lab08rest.repository;
 
+import com.example.lab08rest.entity.Cart;
 import com.example.lab08rest.entity.Order;
 import com.example.lab08rest.enums.PaymentMethod;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -46,5 +47,7 @@ public interface OrderRepository extends JpaRepository<Order,Long> {
 
     @Query("SELECT o FROM Order o WHERE o.paidPrice<>o.totalPrice AND o.cart.discount IS NOT NULL")
     List<Order> findAllByPaidPriceAndTotalPriceAEqualsAndCartDiscountIdIsNull();
+
+    Order findAllByCart(Cart cart);
 
 }

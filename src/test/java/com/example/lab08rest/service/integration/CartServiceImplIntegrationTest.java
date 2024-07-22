@@ -49,4 +49,18 @@ public class CartServiceImplIntegrationTest {
         assertTrue(result);
     }
 
+    @Test
+    public void should_add_to_cart_with_existing_cart(){
+        Customer customer = customerRepository.findById(40L).get();
+
+        boolean result = cartService.addToCart(customer, 1L, 10);
+        List<Cart> cartList = cartRepository.findAllByCustomerIdAndCartState(customer.getId(), CartState.CREATED);
+        Product product = productRepository.findById(1L).get();
+        CartItem cartItem = cartItemRepository.findAllByCartAndProduct(cartList.get(0),product);
+
+        assertNotNull(cartItem);
+        assertThat(cartList).hasSize(1);
+        assertTrue(result);
+    }
+
 }
